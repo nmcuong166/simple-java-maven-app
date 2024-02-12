@@ -1,8 +1,10 @@
+def projectname = "master"
 pipeline {
     agent any
     stages {
         stage('Build') {
             steps {
+                echo ${projectname}
                 sh 'mvn -B -DskipTests clean package'
             }
         }
