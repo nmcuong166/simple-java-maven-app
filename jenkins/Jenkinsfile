@@ -1,26 +1,32 @@
 def projectname = "master demo"
+def isChange = false
+def cron_string = env.ENVIRONMENT == "QA" ? '* * * * *' : ''
+
 pipeline {
     agent any
+    triggers {
+        cron(cron_string)
+    }     
     stages {
-        stage('Build') {
+        stage('Check Any change') {
             steps {
-                echo projectname
-                sh 'mvn -B -DskipTests clean package'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+                script {
+                    println "${cron_string}"
+                    if (GIT_PREVIOUS_SUCCESSFUL_COMMIT != GIT_COMMIT) {
+                        isChange = true
+                    }
                 }
             }
         }
-        stage('Deliver') {
+        stage('Build') {
             steps {
-                sh './jenkins/scripts/deliver.sh'
+               script {
+                    if(isChange) {
+                        echo "change"
+                    } else {
+                        echo "not change"
+                    }
+               }
             }
         }
     }
